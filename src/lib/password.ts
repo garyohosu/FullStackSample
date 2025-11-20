@@ -3,6 +3,27 @@
  * Using Web Crypto API with PBKDF2 (compatible with Cloudflare Workers)
  */
 
+// Helper function to convert Uint8Array to base64
+function arrayBufferToBase64(buffer: Uint8Array): string {
+  let binary = '';
+  const len = buffer.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(buffer[i]);
+  }
+  return btoa(binary);
+}
+
+// Helper function to convert base64 to Uint8Array
+function base64ToArrayBuffer(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
 /**
  * Hash a password using PBKDF2
  * @param password - Plain text password
@@ -40,8 +61,8 @@ export async function hashPassword(password: string): Promise<string> {
 
   // Convert to base64
   const hashArray = new Uint8Array(hashBuffer);
-  const saltBase64 = btoa(String.fromCharCode(...salt));
-  const hashBase64 = btoa(String.fromCharCode(...hashArray));
+  const saltBase64 = arrayBufferToBase64(salt);
+  const hashBase64 = arrayBufferToBase64(hashArray);
 
   return `${saltBase64}.${hashBase64}`;
 }
@@ -61,7 +82,7 @@ export async function verifyPassword(storedHash: string, password: string): Prom
     }
 
     // Decode salt
-    const salt = Uint8Array.from(atob(saltBase64), (c) => c.charCodeAt(0));
+    const salt = base64ToArrayBuffer(saltBase64);
 
     // Encode password as bytes
     const encoder = new TextEncoder();
@@ -90,11 +111,12 @@ export async function verifyPassword(storedHash: string, password: string): Prom
 
     // Convert to base64
     const hashArray = new Uint8Array(hashBuffer);
-    const computedHashBase64 = btoa(String.fromCharCode(...hashArray));
+    const computedHashBase64 = arrayBufferToBase64(hashArray);
 
     // Constant-time comparison
     return hashBase64 === computedHashBase64;
-  } catch {
+  } catch (error) {
+    console.error('Password verification error:', error);
     return false;
   }
 }
