@@ -44,8 +44,14 @@ app.post('/api/register', async (c) => {
       return c.json({ error: 'Email already registered' }, 400);
     }
 
-    // Hash password
-    const passwordHash = await hashPassword(password);
+    // Hash password - wrap in try-catch to catch specific errors
+    let passwordHash: string;
+    try {
+      passwordHash = await hashPassword(password);
+    } catch (hashError) {
+      const hashErrorMsg = hashError instanceof Error ? hashError.message : 'Unknown hash error';
+      return c.json({ error: 'Password hashing failed', details: hashErrorMsg }, 500);
+    }
 
     // Create user
     const userId = generateUserId();
@@ -65,7 +71,12 @@ app.post('/api/register', async (c) => {
   } catch (error) {
     console.error('Registration error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    return c.json({ error: 'Internal server error', details: errorMessage }, 500);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    return c.json({ 
+      error: 'Internal server error', 
+      details: errorMessage,
+      stack: errorStack 
+    }, 500);
   }
 });
 
