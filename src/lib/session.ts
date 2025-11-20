@@ -3,7 +3,35 @@
  * Simple session handling with D1 database
  */
 
-import { encodeBase32, encodeHexLowerCase } from '@oslojs/encoding';
+// Helper functions for encoding
+function encodeBase32(bytes: Uint8Array): string {
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz234567';
+  let result = '';
+  let bits = 0;
+  let value = 0;
+
+  for (let i = 0; i < bytes.length; i++) {
+    value = (value << 8) | bytes[i];
+    bits += 8;
+
+    while (bits >= 5) {
+      result += alphabet[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+
+  if (bits > 0) {
+    result += alphabet[(value << (5 - bits)) & 31];
+  }
+
+  return result;
+}
+
+function encodeHexLowerCase(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 import type { Context } from 'hono';
 
 export interface Session {
