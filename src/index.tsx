@@ -64,7 +64,8 @@ app.post('/api/register', async (c) => {
     return c.json({ success: true, userId });
   } catch (error) {
     console.error('Registration error:', error);
-    return c.json({ error: 'Internal server error' }, 500);
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return c.json({ error: 'Internal server error', details: errorMessage }, 500);
   }
 });
 

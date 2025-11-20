@@ -3,23 +3,18 @@
  * Using Web Crypto API with PBKDF2 (compatible with Cloudflare Workers)
  */
 
-// Helper function to convert Uint8Array to base64
-function arrayBufferToBase64(buffer: Uint8Array): string {
-  let binary = '';
-  const len = buffer.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(buffer[i]);
-  }
-  return btoa(binary);
+// Helper function to convert Uint8Array to hex
+function arrayBufferToHex(buffer: Uint8Array): string {
+  return Array.from(buffer)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
-// Helper function to convert base64 to Uint8Array
-function base64ToArrayBuffer(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binary.charCodeAt(i);
+// Helper function to convert hex to Uint8Array
+function hexToArrayBuffer(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
   }
   return bytes;
 }
@@ -59,12 +54,12 @@ export async function hashPassword(password: string): Promise<string> {
     256
   );
 
-  // Convert to base64
+  // Convert to hex
   const hashArray = new Uint8Array(hashBuffer);
-  const saltBase64 = arrayBufferToBase64(salt);
-  const hashBase64 = arrayBufferToBase64(hashArray);
+  const saltHex = arrayBufferToHex(salt);
+  const hashHex = arrayBufferToHex(hashArray);
 
-  return `${saltBase64}.${hashBase64}`;
+  return `${saltHex}.${hashHex}`;
 }
 
 /**
@@ -76,13 +71,13 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(storedHash: string, password: string): Promise<boolean> {
   try {
     // Parse stored hash
-    const [saltBase64, hashBase64] = storedHash.split('.');
-    if (!saltBase64 || !hashBase64) {
+    const [saltHex, hashHex] = storedHash.split('.');
+    if (!saltHex || !hashHex) {
       return false;
     }
 
     // Decode salt
-    const salt = base64ToArrayBuffer(saltBase64);
+    const salt = hexToArrayBuffer(saltHex);
 
     // Encode password as bytes
     const encoder = new TextEncoder();
@@ -109,12 +104,12 @@ export async function verifyPassword(storedHash: string, password: string): Prom
       256
     );
 
-    // Convert to base64
+    // Convert to hex
     const hashArray = new Uint8Array(hashBuffer);
-    const computedHashBase64 = arrayBufferToBase64(hashArray);
+    const computedHashHex = arrayBufferToHex(hashArray);
 
     // Constant-time comparison
-    return hashBase64 === computedHashBase64;
+    return hashHex === computedHashHex;
   } catch (error) {
     console.error('Password verification error:', error);
     return false;
