@@ -15,8 +15,9 @@
 
 ## 公開URL
 
+- **本番環境（Cloudflare Pages）**: https://e55aac0b.fullstacksample.pages.dev
+- **本番URL（カスタムドメイン）**: https://fullstacksample.pages.dev
 - **開発環境**: https://3000-irblmdlre6djbqg06auob-5c13a017.sandbox.novita.ai
-- **本番環境**: （デプロイ後に更新）
 
 ## 技術スタック
 
@@ -265,8 +266,10 @@ FullStackSample/
 
 ## デプロイ状況
 
-- **プラットフォーム**: Cloudflare Pages（ローカル開発のみ）
-- **ステータス**: ✅ ローカル動作確認済み / ❌ 本番未デプロイ
+- **プラットフォーム**: Cloudflare Pages
+- **ステータス**: ✅ 本番デプロイ済み
+- **本番URL**: https://e55aac0b.fullstacksample.pages.dev
+- **データベース**: Cloudflare D1（本番環境）
 - **最終更新**: 2025-11-20
 
 ## ライセンス
